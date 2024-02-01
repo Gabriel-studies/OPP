@@ -61,25 +61,77 @@ public class CA1 {
                 String NumberOfClasses = reader.readLine();
                 String StudentNumber = reader.readLine();
 
-                System.out.println("Invalid data for student:");
-                System.out.println("First Name: " + FirstName);
-                System.out.println("Second Name: " + SecondName);
-                System.out.println("Number of Classes: " + NumberOfClasses);
-                System.out.println("Student Number: " + StudentNumber);
-                System.out.println();
+                // Calling the function for validation and if right, writting everything to status.txt
+                if (ValidStudentData(FirstName, SecondName, NumberOfClasses, StudentNumber)) {
+                    //if right...
+                    WriteToStatusFile(writer, FirstName, SecondName, NumberOfClasses, StudentNumber);
+                } else {
+                    System.out.println("Invalid data for student:");
+                    System.out.println("First Name: " + FirstName);
+                    System.out.println("Second Name: " + SecondName);
+                    System.out.println("Number of Classes: " + NumberOfClasses);
+                    System.out.println("Student Number: " + StudentNumber);
+                    System.out.println();
+                }
             }
-            
         } catch (IOException e) {
             System.out.println("Error processing student data");
         }
     }
 
     // Validating data
-    //public static boolean ValidStudentData
+    public static boolean ValidStudentData(String FirstName, String SecondName, String NumberOfClasses , String StudentNumber) {
+        // First name must be letters
+        if (!FirstName.matches("[a-zA-Z]+")) {
+            System.err.println("Please give a valid first name");
+        }
+        // Second name must be letters
+        if (!SecondName.matches("[a-zA-Z]+")) {
+            System.err.println("Please give a valid second name");
+        }
+
+        // Parsing the class workload String to get the int
+        int NumberOfClassesParsed = Integer.parseInt(NumberOfClasses);
+
+        // Must be above 1 and below 8
+        if (NumberOfClassesParsed < 1 || NumberOfClassesParsed >= 8) {
+            System.err.println("Please enter a number of class above 1 and below 8");
+        }
+
+        // Validating student number  
+        if (StudentNumber.matches("[a-zA-Z]+")) {
+            System.err.println("Please give a valid student number with letters");
+        }
+        return true;
+    }
 
     // Writting data
-    //public static void WriteToStatusFile
+    public static void WriteToStatusFile(FileWriter writer, String FirstName, String SecondName, String NumberOfClasses, String StudentNumber) 
+
+    // Error if this is not working out
+    throws IOException {
+        // Writting data to status.txt in different lines
+        writer.write("First Name: " + FirstName + "\n");
+        writer.write("Second Name: " + SecondName + "\n");
+        writer.write("Number of Classes: " + NumberOfClasses + "\n");
+        writer.write("Student Number: " + StudentNumber + "\n\n"); // Leaving extra line for next data entry
+    }
+
 
     // Assigning the workload value
-    //public static String DetermineWorkload
+    // Calling the already parsed "numberOfClasses" variable 
+    public static String DetermineWorkload(int NumberOfClassesParsed) {
+        // Determining workload based on the number of classes
+        if (NumberOfClassesParsed == 1) {
+            return "Very Light";
+        } else if (NumberOfClassesParsed == 2) {
+            return "Light";
+        // Between 3 and 5 included: Part Time
+        } else if (NumberOfClassesParsed >= 3 && NumberOfClassesParsed <= 5) {
+            return "Part Time";
+        } else {
+            // Above 5
+            return "Full Time";
+        }
+    }
 }
