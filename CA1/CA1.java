@@ -22,10 +22,12 @@ public class CA1 {
             ProcessStudentData();
             System.out.println("Valid data successfully written!");
         // Add Data manually to status.txt
-        } else if (choice == 2) {
+        }
+        else if (choice == 2) {
             AddDataManually();
         // Error    
-        } else {
+        }
+        else {
             System.out.println("Invalid choice. Exiting program.");
         }
 
@@ -56,20 +58,30 @@ public class CA1 {
                 // Selecting first and second name out my list
                 String FirstName = Names[0];
                 String SecondName = Names[1];
+
                 // Continue validating the .txt file
                 String NumberOfClasses = reader.readLine();
+                
+                // Parsing the class workload String to get the int
+                int NumberOfClassesParsed = Integer.parseInt(NumberOfClasses);
+
+                // Call DetermineWorkload method to determine workload and store the result in a variable
+                String workloadResult = DetermineWorkload(NumberOfClassesParsed);
+
                 String StudentNumber = reader.readLine();
 
                 // Calling the function for validation and if right, writting everything to status.txt
-                if (ValidStudentData(FirstName, SecondName, NumberOfClasses, StudentNumber)) {
+                    
+                if (ValidStudentData(FirstName, SecondName, NumberOfClassesParsed, StudentNumber)) {
                     //if right...
-                    WriteToStatusFile(writer, FirstName, SecondName, NumberOfClasses, StudentNumber);
+                        // Remeber we validate NumberOfClassesParsed but we write workloadResult
+                    WriteToStatusFile(writer, FirstName, SecondName, workloadResult, StudentNumber);
                 } else {
                     // This helps us to see which entry was thrown an error
                     System.out.println("Invalid data for student:");
                     System.out.println("First Name: " + FirstName);
                     System.out.println("Second Name: " + SecondName);
-                    System.out.println("Number of Classes: " + NumberOfClasses);
+                    System.out.println(workloadResult);
                     System.out.println("Student Number: " + StudentNumber);
                 }
             }
@@ -79,7 +91,7 @@ public class CA1 {
     }
 
     // Validating data
-    public static boolean ValidStudentData(String FirstName, String SecondName, String NumberOfClasses, String StudentNumber) {
+    public static boolean ValidStudentData(String FirstName, String SecondName, int NumberOfClassesParsed, String StudentNumber) {
         // Boolean state is valid till one of the next conditionals are not
         boolean isValid = true;
     
@@ -94,42 +106,34 @@ public class CA1 {
             System.err.println("Please give a valid second name");
             isValid = false;
         }
-    
-        // Parsing the class workload String to get the int
-        int NumberOfClassesParsed = Integer.parseInt(NumberOfClasses);
-    
         // Must be above 1 and below 8
         if (NumberOfClassesParsed < 1 || NumberOfClassesParsed >= 8) {
             System.err.println("Please enter a number of classes above 1 and below 8");
             isValid = false;
-        }
-    
+        }  
         // Validating student number 
         if (!StudentNumber.matches("2\\d{1}[A-Z]{3}\\d{4}")) { // Two numbers (MUST start with 2) + Three letters + Four numbers
             System.err.println("Please give a valid student number with the format: 20AAA0000");
             isValid = false;
-        }
-    
+        }  
         // Return state of the boolean
         return isValid;
     }
     
 
     // Writting data
-    public static void WriteToStatusFile(FileWriter writer, String FirstName, String SecondName, String NumberOfClasses, String StudentNumber) 
+    public static void WriteToStatusFile(FileWriter writer, String FirstName, String SecondName, String workloadResult, String StudentNumber) 
 
     // Error if this is not working out
     throws IOException {
         // Writting data to status.txt in different lines
-        writer.write("First Name: " + FirstName + "\n");
-        writer.write("Second Name: " + SecondName + "\n");
-        writer.write("Number of Classes: " + NumberOfClasses + "\n");
-        writer.write("Student Number: " + StudentNumber + "\n\n"); // Leaving extra line for next data entry
+        writer.write(StudentNumber + " - " + SecondName + "\n");
+        writer.write(workloadResult + "\n\n"); // Leaving extra line for next data entry
     }
 
 
     // Assigning the workload value
-    // Calling the already parsed "numberOfClasses" variable 
+    // Passing the already parsed "numberOfClasses" variable 
     public static String DetermineWorkload(int NumberOfClassesParsed) {
         // Determining workload based on the number of classes
         if (NumberOfClassesParsed == 1) {
@@ -169,13 +173,20 @@ public class CA1 {
             // Continue adding the rest of the data
             System.out.println("Enter Number of Classes:");
             String NumberOfClasses = scanner.nextLine();
+            
+            // Parsing the class workload String to get the int
+            int NumberOfClassesParsed = Integer.parseInt(NumberOfClasses);
+
+            // Call DetermineWorkload method to determine workload and store the result in a variable
+            String workloadResult = DetermineWorkload(NumberOfClassesParsed);
 
             System.out.println("Enter Student Number:");
             String StudentNumber = scanner.nextLine();
 
             // Validating data by calling these two methods
-            if (ValidStudentData(FirstName, SecondName, NumberOfClasses, StudentNumber)) {
-                WriteToStatusFile(writer, FirstName, SecondName, NumberOfClasses, StudentNumber);
+                // Remeber we validate NumberOfClassesParsed but we write workloadResult
+            if (ValidStudentData(FirstName, SecondName, NumberOfClassesParsed, StudentNumber)) {
+                WriteToStatusFile(writer, FirstName, SecondName, workloadResult, StudentNumber);
                 System.out.println("Data added successfully to status.txt");
             } else {
                 System.out.println("Something went wrong, check manual added data");
