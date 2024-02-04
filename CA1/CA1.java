@@ -1,4 +1,4 @@
-// Gabriel Villasmil "CA1": Github repo:
+// Gabriel Villasmil "CA1": Github repo: https://github.com/Gabriel-studies/OPP/tree/main/CA1
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,18 +13,17 @@ public class CA1 {
 
         // Display menu: choosing operations
         System.out.println("Menu:");
-        System.out.println("1. Writting files automatically");
-        System.out.println("2. Add Data to status.txt manually");
+        System.out.println("1. Write files automatically from students.txt");
+        System.out.println("2. Add data manually to status.txt");
         System.out.print("Enter your choice (1 or 2): ");
         int choice = scanner.nextInt();
         // Standard Operation
         if (choice == 1) {
             ProcessStudentData();
-            System.out.println("Successfully written!");
-        //Add Data manually to status.txt
+            System.out.println("Valid data successfully written!");
+        // Add Data manually to status.txt
         } else if (choice == 2) {
-            System.out.println("Wait till programmed");
-            //AddDataManually();
+            AddDataManually();
         // Error    
         } else {
             System.out.println("Invalid choice. Exiting program.");
@@ -51,7 +50,7 @@ public class CA1 {
                 String[] Names = line.split(" ");
                 // Validating the split (Must be first and second name)
                 if (Names.length < 2) {
-                    System.out.println("Invalid data.");
+                    System.out.println("Invalid data: first and second name must be in the same line separated by space");
                     continue;
                 }
                 // Selecting first and second name out my list
@@ -66,44 +65,55 @@ public class CA1 {
                     //if right...
                     WriteToStatusFile(writer, FirstName, SecondName, NumberOfClasses, StudentNumber);
                 } else {
+                    // This helps us to see which entry was thrown an error
                     System.out.println("Invalid data for student:");
                     System.out.println("First Name: " + FirstName);
                     System.out.println("Second Name: " + SecondName);
                     System.out.println("Number of Classes: " + NumberOfClasses);
                     System.out.println("Student Number: " + StudentNumber);
-                    System.out.println();
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error processing student data");
+            System.out.println("Error processing student data; check data in students.txt");
         }
     }
 
     // Validating data
-    public static boolean ValidStudentData(String FirstName, String SecondName, String NumberOfClasses , String StudentNumber) {
+    public static boolean ValidStudentData(String FirstName, String SecondName, String NumberOfClasses, String StudentNumber) {
+        // Boolean state is valid till one of the next conditionals are not
+        boolean isValid = true;
+    
         // First name must be letters
         if (!FirstName.matches("[a-zA-Z]+")) {
             System.err.println("Please give a valid first name");
+            // Change boolean state
+            isValid = false;
         }
         // Second name must be letters
         if (!SecondName.matches("[a-zA-Z]+")) {
             System.err.println("Please give a valid second name");
+            isValid = false;
         }
-
+    
         // Parsing the class workload String to get the int
         int NumberOfClassesParsed = Integer.parseInt(NumberOfClasses);
-
+    
         // Must be above 1 and below 8
         if (NumberOfClassesParsed < 1 || NumberOfClassesParsed >= 8) {
-            System.err.println("Please enter a number of class above 1 and below 8");
+            System.err.println("Please enter a number of classes above 1 and below 8");
+            isValid = false;
         }
-
-        // Validating student number  
-        if (StudentNumber.matches("[a-zA-Z]+")) {
-            System.err.println("Please give a valid student number with letters");
+    
+        // Validating student number 
+        if (!StudentNumber.matches("2\\d{1}[A-Z]{3}\\d{4}")) { // Two numbers (MUST start with 2) + Three letters + Four numbers
+            System.err.println("Please give a valid student number with the format: 20AAA0000");
+            isValid = false;
         }
-        return true;
+    
+        // Return state of the boolean
+        return isValid;
     }
+    
 
     // Writting data
     public static void WriteToStatusFile(FileWriter writer, String FirstName, String SecondName, String NumberOfClasses, String StudentNumber) 
@@ -132,6 +142,46 @@ public class CA1 {
         } else {
             // Above 5
             return "Full Time";
-        }
+        }    
+    }
+
+    // Adding data manually method
+    public static void AddDataManually() {
+        // Openning new scanner in a try catch
+        try (Scanner scanner = new Scanner(System.in);
+
+            // Remember appending it to avoid overwritting
+            FileWriter writer = new FileWriter("status.txt", true)) {
+
+            System.out.println("Enter First Name and Last Name separated by space:");
+            String fullName = scanner.nextLine();
+            
+            // Creating an empty list to get both first and second name whenever we need
+            String[] names = fullName.split(" ");
+            if (names.length < 2) {
+                System.out.println("Invalid format. Please enter both first and last name separated by space in the same line.");
+                return;
+            }
+            // Picking each name out of our list
+            String FirstName = names[0];
+            String SecondName = names[1];
+
+            // Continue adding the rest of the data
+            System.out.println("Enter Number of Classes:");
+            String NumberOfClasses = scanner.nextLine();
+
+            System.out.println("Enter Student Number:");
+            String StudentNumber = scanner.nextLine();
+
+            // Validating data by calling these two methods
+            if (ValidStudentData(FirstName, SecondName, NumberOfClasses, StudentNumber)) {
+                WriteToStatusFile(writer, FirstName, SecondName, NumberOfClasses, StudentNumber);
+                System.out.println("Data added successfully to status.txt");
+            } else {
+                System.out.println("Something went wrong, check manual added data");
+            }
+        } catch (IOException e) {
+            System.out.println("Error adding manual data to status.txt");
+        }    
     }
 }
