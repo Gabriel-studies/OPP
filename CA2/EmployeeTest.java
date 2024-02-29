@@ -1,6 +1,8 @@
 public class EmployeeTest {
     public static void main(String[] args) {
 
+    // 1ST PART
+
         // Creating test
         Employee emp1 = new Employee("Joe Bloggs", "jb@gmail.com");
         Employee emp2 = new Employee("Ann Banana", "ab@gmail.com");
@@ -18,7 +20,27 @@ public class EmployeeTest {
         for (Employee i : projectGroup) {
             if (i.GetEmpNum() > m) {
                 System.out.println(i.GetName());
-            }
-        }        
+            }   
+        }
+        
+        // We can use this too
+        // List employees with empNum > 2
+        //System.out.println("Employees with empNum > 2:");
+        //company.ListEmployees(2);
+        
+    // 2ND PART
+
+        // Create a Company instance
+        Company company = new Company();
+
+        // Add employees to the company
+        company.AddNewStaff(emp1);
+        company.AddNewStaff(emp2);
+        company.AddNewStaff(emp3);
+        
+
+        // Manager login and menu
+        company.ManagerMenu();
+        
     }
 }
