@@ -91,7 +91,45 @@ public class Company {
                         }
                         break;
                     case 2:
-                        System.out.println("Wait till programmed");
+                    String name = "";
+
+                    // I had to create a validation point where employee name is asked first and when filled
+                    // the program continues with asking for the email. Otherwise they would jump off at the same time in the console like this:
+
+                    // New employee name:
+                    // New employee email:
+                    
+                    // Maybe because I am denting in a while loop, or that is how switch works. I have no idea
+
+                    while (name.isEmpty()) {
+                        name = scanner.nextLine(); 
+                        if (name.isEmpty()) {
+                            System.out.println("New employee name:");
+                        }
+                    }
+
+                    // Now continues the program
+
+                    System.out.println("New employee email:");
+                    String email = scanner.next();
+                    
+                        
+                        // New Employee object
+                        Employee newEmp = new Employee(name, email);
+                        
+                        // for AddNewStaff method I needed to create a new 
+                        // Company company = new Company(); instance
+                        // which takes another part of memmory which then I didnt know how to link with the main one
+                        // that is why I didnt use AddNewStaff method
+
+                        // Adding the new employee directly to the staff
+                        staff.add(newEmp);
+                        // Also add empNum
+                        staffSet.add(newEmp.GetEmpNum());
+                        
+                        System.out.println("New employee added successfully.");
+                        break;
+                    
                     case 3:
                         // Removimg staff by empNum
                         System.out.println("Enter employee number to remove:");
