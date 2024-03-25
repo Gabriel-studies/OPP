@@ -299,14 +299,78 @@ public class main {
     
     
 
-    private static void officeMenu(Connection connection) {
-        System.out.println("Wait till programed");
-            }
-       
 
-    private static void lecturerMenu(Connection connection) {
-        System.out.println("Wait till programed");
+ // ---------------------------------------------------------------------- OfficeMenu -----------------------------------------------------------------//   
+
+
+    private static void officeMenu(Connection connection) {
+        while (true) {
+            System.out.println("Office Menu");
+            System.out.println("1. Generate Course Report");
+            System.out.println("2. Generate Student Report");
+            System.out.println("3. Generate Lecturer Report");
+            System.out.println("4. Change Password");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
             
+            switch (choice) {
+                case 1:
+                    System.out.print("Case 1");
+                    break;
+                case 2:
+                    System.out.print("Case 2");
+                    break;
+                case 3:
+                    System.out.print("Case 3");
+                    break;
+                case 4:
+                    // inizializing currentUsername string
+                    System.out.print("Enter your current username: ");
+                    String currentUsername = scanner.nextLine();
+                    changeOwnUsernameAndPassword(connection, currentUsername);
+                    break;
+                case 5:
+                    System.out.println("Exiting program.");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
     }
 
-} 
+// -------------------------------------------------------------------------- LecturerMenu ------------------------------------------------------------------ //
+
+    private static void lecturerMenu(Connection connection) {
+        while (true) {
+            System.out.println("Lecuter Menu");
+            System.out.println("1. Generate Lecturer Report");
+            System.out.println("2. Change Password");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); 
+            
+            switch (choice) {
+                case 1:
+                    System.out.print("Case 1");
+                    break;
+                case 2:
+                    // inizializing currentUsername string
+                    System.out.print("Enter your current username: ");
+                    String currentUsername = scanner.nextLine();
+                    changeOwnUsernameAndPassword(connection, currentUsername);
+                    break;
+                case 3:
+                    System.out.println("Exiting program.");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+}
