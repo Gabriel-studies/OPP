@@ -1,22 +1,29 @@
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Scanner;
+import java.sql.Statement;
 
 
+// Main Class
 public class main {
 
     private static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args) {
 
-        // Connection to the database
+        // Connection to my database
         Connection connection = App.getConnection();
 
+        // Authenticate the user
         String role = authenticateUser();
         
-        // Menu on users role
+        // Running the choose
         switch (role) {
             case "admin":
                 adminMenu(connection);
@@ -32,14 +39,16 @@ public class main {
                 break;
             }
     }
+
+    // First menu
     private static String authenticateUser() {
-        System.out.println("Welcome! Please select your role:");
+        System.out.println("Welcome! Please login:");
         System.out.println("1. Admin");
         System.out.println("2. Office");
         System.out.println("3. Lecturer");
         System.out.print("Enter your choice: ");
         int choice = scanner.nextInt();
-        scanner.nextLine(); 
+        scanner.nextLine();
         
         switch (choice) {
             case 1:
@@ -53,8 +62,8 @@ public class main {
         }
     }
 
+    // Prompt this after the program gets the role
     private static String login(String role) {
-    
     String username, password;
     System.out.print("Enter username: ");
     username = scanner.nextLine();
@@ -62,11 +71,15 @@ public class main {
     password = scanner.nextLine();
     
     try (Connection connection = App.getConnection();
+
+        // Run the query
          PreparedStatement statement = connection.prepareStatement("SELECT role FROM Users WHERE username = ? AND password = ?")) {
+
         statement.setString(1, username);
         statement.setString(2, password);
         ResultSet resultSet = statement.executeQuery();
 
+        // If the query equals the role, continue the program
         if (resultSet.next()) {
             String userRole = resultSet.getString("role");
             if (userRole.equals(role)) {
@@ -299,7 +312,6 @@ public class main {
     
     
 
-
  // ---------------------------------------------------------------------- OfficeMenu -----------------------------------------------------------------//   
 
 
@@ -317,13 +329,13 @@ public class main {
             
             switch (choice) {
                 case 1:
-                    System.out.print("Case 1");
+                    selectCourseReportFormat();
                     break;
                 case 2:
-                    System.out.print("Case 2");
+                    selectStudentReportFormat();
                     break;
                 case 3:
-                    System.out.print("Case 3");
+                    selectLecturerReportFormat();
                     break;
                 case 4:
                     // inizializing currentUsername string
@@ -341,7 +353,7 @@ public class main {
         }
     }
 
-// -------------------------------------------------------------------------- LecturerMenu ------------------------------------------------------------------ //
+    // -------------------------------------------------------------------------- LecturerMenu ------------------------------------------------------------------ //
 
     private static void lecturerMenu(Connection connection) {
         while (true) {
@@ -355,7 +367,7 @@ public class main {
             
             switch (choice) {
                 case 1:
-                    System.out.print("Case 1");
+                    selectLecturerReportFormat();
                     break;
                 case 2:
                     // inizializing currentUsername string
@@ -373,4 +385,394 @@ public class main {
         }
     }
 
+
+    // ------------------------------------------------------------------------- Course report ---------------------------------------------------------------------//
+
+
+    private static void selectCourseReportFormat() {
+        System.out.println("Select Course Report Format:");
+        System.out.println("1. Text");
+        System.out.println("2. CSV");
+        System.out.println("3. Console");
+        System.out.print("Enter your choice: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1:
+                generateCourseReport("txt");
+                break;
+            case 2:
+                generateCourseReport("csv");
+                break;
+            case 3:
+                generateCourseReport("console");
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                // Bring it back
+                selectCourseReportFormat();
+                break;
+        }
+    }
+
+
+    private static void generateCourseReport(String format) {
+    Connection connection = null;
+    try {
+        connection = App.getConnection();
+        switch (format.toLowerCase()) {
+            case "txt":
+                generateCourseReportAsText(connection);
+                break;
+            case "csv":
+                generateCourseReportAsCSV(connection);
+                break;
+            case "console":
+                DatabaseManager.generateCourseReport(connection); // Direct console output
+                break;
+            default:
+                System.out.println("Invalid report format choice.");
+                break;
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
 }
+
+    // REPORT GETS GENERATED BUT PROGRAM FREEZES AND I DONT NOT WHY
+    // Course report as txt
+    private static void generateCourseReportAsText(Connection connection) throws SQLException {
+        try (PrintWriter writer = new PrintWriter("course_report.txt")) {
+
+            // Java class that allows me hold the data otherwise would be printed in the console
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // Saving it
+            PrintStream ps = new PrintStream(baos);
+            System.setOut(ps); 
+
+            // Generate the report
+            DatabaseManager.generateCourseReport(connection); 
+
+            // Writting the variable
+            writer.println(baos.toString());
+
+            System.setOut(System.out); 
+            System.out.println("Course Report generated as 'course_report.txt'");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to generate Course Report as a CSV file
+    private static void generateCourseReportAsCSV(Connection connection) {
+        // Calling the writer
+        try (PrintWriter writer = new PrintWriter("course_report.csv")) {
+
+            // Pass the resulset
+            ResultSet resultSet = DatabaseManager.getCourseReportResultSet(connection);
+
+            // Getting metadata so we getting the counts, so we pass a loop to write
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            // Writting the headers by counting the columns
+            for (int i = 1; i <= columnCount; i++) {
+                writer.print(metaData.getColumnName(i));
+                if (i < columnCount) {
+                    // Separating by every comma
+                    writer.print(",");
+                } else {
+                    writer.println();
+                }
+            }
+            // Rows
+            while (resultSet.next()) {
+
+                // Columns checked
+                for (int i = 1; i <= columnCount; i++) {
+                    writer.print(resultSet.getString(i));
+                    // Get the data
+                    if (i < columnCount) {
+                        writer.print(",");
+                    } else {
+                        writer.println();
+                    }
+                }
+            }
+            System.out.println("Course Report generated as 'course_report.csv'");
+        } catch (SQLException | FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Calling the methods in databasemanager
+    private static void generateCourseReport() {
+
+        // Calling the method in Databasemanager to generate the report
+        try {
+            Connection connection = App.getConnection();
+            DatabaseManager.generateCourseReport(connection);
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
+    // ---------------------------------------------------------------------------- Student Report --------------------------------------------------------------------- // 
+
+
+    private static void selectStudentReportFormat() {
+        System.out.println("Select Student Report Format:");
+        System.out.println("1. Text");
+        System.out.println("2. CSV");
+        System.out.println("3. Console");
+        System.out.print("Enter your choice: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine(); 
+        
+        switch (choice) {
+            case 1:
+                generateStudentReport("txt");
+                break;
+            case 2:
+                generateStudentReport("csv");
+                break;
+            case 3:
+                generateStudentReport("console");
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                selectStudentReportFormat(); 
+                break;
+        }
+    }
+
+    // REPORT GETS GENERATED BUT PROGRAM FREEZES AND I DONT NOT WHY
+    // Method to generate Course Report as a text file
+    private static void generateStudentReportAsText(Connection connection) throws SQLException {
+        try (PrintWriter writer = new PrintWriter("student_report.txt")) {
+
+            // Java class that allows me hold the data otherwise would be printed in the console
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // Saving it
+            PrintStream ps = new PrintStream(baos);
+            System.setOut(ps); 
+
+            // Generate the report
+            DatabaseManager.generateStudentReport(connection); 
+
+            // Writting the variable
+            writer.println(baos.toString());
+
+            System.setOut(System.out); 
+            System.out.println("Course Report generated as 'student_report.txt'");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to generate Course Report as a CSV file
+    private static void generateStudentReportAsCSV(Connection connection) {
+        try (PrintWriter writer = new PrintWriter("student_report.csv")) {
+            ResultSet resultSet = DatabaseManager.getCourseReportResultSet(connection);
+
+            // Getting metadata so we getting the counts, so we pass a loop to write
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            
+            // Headers
+            for (int i = 1; i <= columnCount; i++) {
+                writer.print(metaData.getColumnName(i));
+                if (i < columnCount) {
+                    writer.print(",");
+                } else {
+                    writer.println();
+                }
+            }
+
+            // Rows
+            while (resultSet.next()) {
+                for (int i = 1; i <= columnCount; i++) {
+                    writer.print(resultSet.getString(i));
+                    if (i < columnCount) {
+                        writer.print(",");
+                    } else {
+                        writer.println();
+                    }
+                }
+            }
+            System.out.println("Student Report generated as 'Student_report.csv'");
+        } catch (SQLException | FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static void generateStudentReport(String format) {
+        Connection connection = null;
+        try {
+            connection = App.getConnection();
+            switch (format.toLowerCase()) {
+                case "txt":
+                    generateStudentReportAsText(connection);
+                    break;
+                case "csv":
+                    generateStudentReportAsCSV(connection);
+                    break;
+                case "console":
+                    DatabaseManager.generateStudentReport(connection);
+                    break;
+                default:
+                    System.out.println("Invalid report format choice.");
+                    break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void generateStudentReport() {
+
+        // Calling the method in Databasemanager to generate the report
+        try {
+            Connection connection = App.getConnection();
+            DatabaseManager.generateStudentReport(connection);
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // ---------------------------------------------------------------- Lecturer Report --------------------------------------------------------------------------//
+
+
+    private static void selectLecturerReportFormat() {
+        System.out.println("Select Lecturer Report Format:");
+        System.out.println("1. Text");
+        System.out.println("2. CSV");
+        System.out.println("3. Console");
+        System.out.print("Enter your choice: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1:
+                generateLecturerReport("txt");
+                break;
+            case 2:
+                generateLecturerReport("csv");
+                break;
+            case 3:
+                generateLecturerReport("console");
+                break;
+            default:
+                System.out.println("Invalid choice. Please try again.");
+                selectLecturerReportFormat();
+                break;
+        }
+    }
+
+    // REPORT GETS GENERATED BUT PROGRAM FREEZES AND I DONT NOT WHY
+    // Method to generate Course Report as a text file
+    private static void generateLecturerReportAsText(Connection connection) throws SQLException {
+        try (PrintWriter writer = new PrintWriter("lecturer_report.txt")) {
+            // Java class that allows me hold the data otherwise would be printed in the console
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // Saving it
+            PrintStream ps = new PrintStream(baos);
+            System.setOut(ps); 
+
+            // Generate the report
+            DatabaseManager.generateLecturerReport(connection); 
+
+            // Writting the variable
+            writer.println(baos.toString());
+
+            System.setOut(System.out); 
+            System.out.println("Lecturer Report generated as 'lecturer_report.txt'");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
+    // Method to generate Lecturer Report as a CSV file
+    private static void generateLecturerReportAsCSV(Connection connection) {
+        try (PrintWriter writer = new PrintWriter("lecturer_report.csv")) {
+
+            // Calling the Resulset from Databasemanager
+            ResultSet resultSet = DatabaseManager.getLecturerReportResultSet(connection); 
+
+            // Getting metadata so we getting the counts, so we pass a loop to write
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            // Headers
+            for (int i = 1; i <= columnCount; i++) {
+                writer.print(metaData.getColumnName(i));
+                if (i < columnCount) {
+                    writer.print(",");
+                } else {
+                    writer.println();
+                }
+            }
+            
+            // Rows
+            while (resultSet.next()) {
+                for (int i = 1; i <= columnCount; i++) {
+                    writer.print(resultSet.getString(i));
+                    if (i < columnCount) {
+                        writer.print(",");
+                    } else {
+                        writer.println();
+                    }
+                }
+            }
+            System.out.println("Lecturer Report generated as 'lecturer_report.csv'");
+        } catch (SQLException | FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static void generateLecturerReport(String format) {
+        Connection connection = null;
+        try {
+            connection = App.getConnection();
+            switch (format.toLowerCase()) {
+                case "txt":
+                    generateLecturerReportAsText(connection);
+                    break;
+                case "csv":
+                    generateLecturerReportAsCSV(connection);
+                    break;
+                case "console":
+                    DatabaseManager.generateLecturerReport(connection); 
+                    break;
+                default:
+                    System.out.println("Invalid report format choice.");
+                    break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static void generateLecturerReport() {
+
+        // Calling the method in Databasemanager to generate the report
+        try {
+            Connection connection = App.getConnection();
+            DatabaseManager.generateLecturerReport(connection);
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
